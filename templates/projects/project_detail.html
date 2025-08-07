@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block title %}{{ project.name }} - bigmomo logs cms{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-folder"></i> {{ project.name }}
+            </h1>
+            <div class="btn-group">
+                <a href="{% url 'project_edit' project.pk %}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Edit Project
+                </a>
+                <a href="{% url 'project_configuration' project.pk %}" class="btn btn-primary">
+                    <i class="bi bi-gear"></i> Configure
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Project Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i> Project Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Name:</strong>
+                        <p>{{ project.name }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Client:</strong>
+                        <p>{{ project.client.name }}</p>
+                    </div>
+                </div>
+                {% if project.description %}
+                <div class="row">
+                    <div class="col-12">
+                        <strong>Description:</strong>
+                        <p>{{ project.description }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Created by:</strong>
+                        <p>{{ project.created_by.username }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Created:</strong>
+                        <p>{{ project.created_at|date:"F j, Y" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Source Configuration -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-server"></i> Log Source
+                </h5>
+                {% if log_source %}
+                    <a href="{% url 'configure_log_source' project.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                {% else %}
+                    <a href="{% url 'configure_log_source' project.pk %}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-circle"></i> Configure
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if log_source %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Source Type:</strong>
+                            <p>
+                                <span class="badge bg-primary">{{ log_source.get_source_type_display }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Status:</strong>
+                            <p><span class="badge bg-success">Configured</span></p>
+                        </div>
+                    </div>
+                    
+                    {% if log_source.source_type == 'sftp' %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Host:</strong>
+                                <p>{{ log_source.host }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Port:</strong>
+                                <p>{{ log_source.port }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Username:</strong>
+                                <p>{{ log_source.username }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Directory:</strong>
+                                <p>{{ log_source.directory }}</p>
+                            </div>
+                        </div>
+                    {% elif log_source.source_type == 's3' %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Bucket:</strong>
+                                <p>{{ log_source.bucket_name }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Region:</strong>
+                                <p>{{ log_source.region }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Access Key ID:</strong>
+                                <p>{{ log_source.access_key_id|truncatechars:20 }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Prefix:</strong>
+                                <p>{{ log_source.prefix|default:"None" }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-server-x fs-1"></i>
+                        <p>No log source configured yet.</p>
+                        <a href="{% url 'configure_log_source' project.pk %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Configure Log Source
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- File Filter Configuration -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-funnel"></i> File Filter
+                </h5>
+                {% if file_filter %}
+                    <a href="{% url 'configure_file_filter' project.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                {% else %}
+                    <a href="{% url 'configure_file_filter' project.pk %}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-circle"></i> Configure
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if file_filter %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Filter Type:</strong>
+                            <p>{{ file_filter.get_filter_type_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Pattern:</strong>
+                            <p><code>{{ file_filter.pattern }}</code></p>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-funnel-x fs-1"></i>
+                        <p>No file filter configured yet.</p>
+                        <a href="{% url 'configure_file_filter' project.pk %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Configure File Filter
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Schedule Configuration -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="bi bi-clock"></i> Schedule
+                </h5>
+                {% if schedule %}
+                    <a href="{% url 'configure_schedule' project.pk %}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                {% else %}
+                    <a href="{% url 'configure_schedule' project.pk %}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus-circle"></i> Configure
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if schedule %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Cron Expression:</strong>
+                            <p><code>{{ schedule.cron_expression }}</code></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Status:</strong>
+                            <p>
+                                {% if schedule.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-clock-x fs-1"></i>
+                        <p>No schedule configured yet.</p>
+                        <a href="{% url 'configure_schedule' project.pk %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Configure Schedule
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Configuration Status -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-check-circle"></i> Configuration Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Log Source</span>
+                        {% if log_source %}
+                            <i class="bi bi-check-circle text-success"></i>
+                        {% else %}
+                            <i class="bi bi-x-circle text-danger"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>File Filter</span>
+                        {% if file_filter %}
+                            <i class="bi bi-check-circle text-success"></i>
+                        {% else %}
+                            <i class="bi bi-x-circle text-danger"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Schedule</span>
+                        {% if schedule %}
+                            <i class="bi bi-check-circle text-success"></i>
+                        {% else %}
+                            <i class="bi bi-x-circle text-danger"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if log_source and file_filter and schedule %}
+                    <div class="alert alert-success mt-3">
+                        <i class="bi bi-check-circle"></i>
+                        <strong>Project is fully configured!</strong>
+                    </div>
+                {% else %}
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Configuration incomplete</strong>
+                        <p class="mb-0 small">Configure all components to enable ETL processing.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-lightning"></i> Quick Actions
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'project_configuration' project.pk %}" class="btn btn-primary">
+                        <i class="bi bi-gear"></i> Full Configuration
+                    </a>
+                    <a href="{% url 'project_edit' project.pk %}" class="btn btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Edit Project
+                    </a>
+                    <a href="{% url 'project_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Projects
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

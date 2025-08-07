@@ -6,7 +6,19 @@ from .models import Project, LogSource, FileFilter, Schedule
 class LogSourceInline(admin.StackedInline):
     model = LogSource
     extra = 0
-    fields = ['source_type', 'host', 'port', 'username', 'password', 'directory']
+    fieldsets = (
+        ('Source Type', {
+            'fields': ['source_type']
+        }),
+        ('SFTP Configuration', {
+            'fields': ['host', 'port', 'username', 'password', 'directory'],
+            'classes': ('collapse',)
+        }),
+        ('S3 Configuration', {
+            'fields': ['bucket_name', 'region', 'access_key_id', 'secret_access_key', 'prefix'],
+            'classes': ('collapse',)
+        }),
+    )
 
 
 class FileFilterInline(admin.StackedInline):
@@ -63,10 +75,36 @@ class ProjectAdmin(admin.ModelAdmin):
 class LogSourceAdmin(admin.ModelAdmin):
     """Admin interface for LogSource model."""
     
-    list_display = ['project', 'source_type', 'host', 'port', 'username', 'created_at']
+    list_display = ['project', 'source_type', 'get_connection_info', 'created_at']
     list_filter = ['source_type', 'created_at']
-    search_fields = ['project__name', 'host', 'username']
+    search_fields = ['project__name', 'host', 'username', 'bucket_name']
     ordering = ['project__name']
+    
+    fieldsets = (
+        ('Project', {
+            'fields': ['project']
+        }),
+        ('Source Type', {
+            'fields': ['source_type']
+        }),
+        ('SFTP Configuration', {
+            'fields': ['host', 'port', 'username', 'password', 'directory'],
+            'classes': ('collapse',)
+        }),
+        ('S3 Configuration', {
+            'fields': ['bucket_name', 'region', 'access_key_id', 'secret_access_key', 'prefix'],
+            'classes': ('collapse',)
+        }),
+    )
+    
+    def get_connection_info(self, obj):
+        """Display connection info based on source type."""
+        if obj.source_type == 'sftp':
+            return f"{obj.host}:{obj.port}"
+        elif obj.source_type == 's3':
+            return f"{obj.bucket_name}/{obj.prefix or ''}"
+        return "Not configured"
+    get_connection_info.short_description = 'Connection Info'
 
 
 @admin.register(FileFilter)

@@ -45,11 +45,11 @@ class Project(models.Model):
 
 
 class LogSource(models.Model):
-    """Log source configuration for FTP/SFTP."""
+    """Log source configuration for SFTP and S3."""
     
     class SourceType(models.TextChoices):
-        FTP = 'ftp', _('FTP')
         SFTP = 'sftp', _('SFTP')
+        S3 = 's3', _('Amazon S3')
     
     project = models.OneToOneField(
         Project,
@@ -65,32 +65,75 @@ class LogSource(models.Model):
         verbose_name=_('Source Type')
     )
     
+    # SFTP fields
     host = models.CharField(
         max_length=255,
         verbose_name=_('Host'),
-        help_text=_('Server hostname or IP address')
+        help_text=_('Server hostname or IP address'),
+        blank=True
     )
     
     port = models.IntegerField(
         default=22,
         verbose_name=_('Port'),
-        help_text=_('Server port (22 for SFTP, 21 for FTP)')
+        help_text=_('Server port (22 for SFTP)'),
+        blank=True,
+        null=True
     )
     
     username = models.CharField(
         max_length=255,
-        verbose_name=_('Username')
+        verbose_name=_('Username'),
+        blank=True
     )
     
     password = models.CharField(
         max_length=255,
-        verbose_name=_('Password')
+        verbose_name=_('Password'),
+        blank=True
     )
     
     directory = models.CharField(
         max_length=500,
         verbose_name=_('Directory'),
-        help_text=_('Directory path where logs are located')
+        help_text=_('Directory path where logs are located'),
+        blank=True
+    )
+    
+    # S3 fields
+    bucket_name = models.CharField(
+        max_length=255,
+        verbose_name=_('Bucket Name'),
+        help_text=_('S3 bucket name'),
+        blank=True
+    )
+    
+    region = models.CharField(
+        max_length=50,
+        verbose_name=_('Region'),
+        help_text=_('AWS region (e.g., us-east-1)'),
+        blank=True
+    )
+    
+    access_key_id = models.CharField(
+        max_length=255,
+        verbose_name=_('Access Key ID'),
+        help_text=_('AWS Access Key ID'),
+        blank=True
+    )
+    
+    secret_access_key = models.CharField(
+        max_length=255,
+        verbose_name=_('Secret Access Key'),
+        help_text=_('AWS Secret Access Key'),
+        blank=True
+    )
+    
+    prefix = models.CharField(
+        max_length=500,
+        verbose_name=_('Prefix'),
+        help_text=_('S3 object prefix/folder path'),
+        blank=True
     )
     
     created_at = models.DateTimeField(auto_now_add=True)
@@ -101,7 +144,31 @@ class LogSource(models.Model):
         verbose_name_plural = _('Log Sources')
     
     def __str__(self):
-        return f"{self.get_source_type_display()} - {self.host}:{self.port}"
+        if self.source_type == self.SourceType.SFTP:
+            return f"SFTP - {self.host}:{self.port}"
+        else:
+            return f"S3 - {self.bucket_name}/{self.prefix}"
+    
+    def clean(self):
+        """Validate that required fields are filled based on source type."""
+        from django.core.exceptions import ValidationError
+        
+        if self.source_type == self.SourceType.SFTP:
+            if not self.host:
+                raise ValidationError({'host': 'Host is required for SFTP sources.'})
+            if not self.username:
+                raise ValidationError({'username': 'Username is required for SFTP sources.'})
+            if not self.directory:
+                raise ValidationError({'directory': 'Directory is required for SFTP sources.'})
+        elif self.source_type == self.SourceType.S3:
+            if not self.bucket_name:
+                raise ValidationError({'bucket_name': 'Bucket name is required for S3 sources.'})
+            if not self.region:
+                raise ValidationError({'region': 'Region is required for S3 sources.'})
+            if not self.access_key_id:
+                raise ValidationError({'access_key_id': 'Access Key ID is required for S3 sources.'})
+            if not self.secret_access_key:
+                raise ValidationError({'secret_access_key': 'Secret Access Key is required for S3 sources.'})
 
 
 class FileFilter(models.Model):
