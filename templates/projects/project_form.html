@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+    {% if object %}Edit Project{% else %}New Project{% endif %} - BigMomo Logs CMS
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-folder"></i>
+                {% if object %}Edit Project{% else %}New Project{% endif %}
+            </h1>
+            <a href="{% url 'project_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Projects
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i>
+                            {% if object %}Update Project{% else %}Create Project{% endif %}
+                        </button>
+                        <a href="{% url 'project_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

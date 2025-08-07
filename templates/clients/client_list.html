@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Clients - bigmomo logs cms{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-building"></i> Clients
+            </h1>
+            <a href="{% url 'client_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> New Client
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <form method="get" class="d-flex">
+            <input type="text" name="search" class="form-control me-2" placeholder="Search clients..." value="{{ request.GET.search }}">
+            <button type="submit" class="btn btn-outline-secondary">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if clients %}
+                    <div class="accordion" id="clientsAccordion">
+                        {% for client in clients %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading{{ client.id }}">
+                                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ client.id }}">
+                                    <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                        <div>
+                                            <strong>{{ client.name }}</strong>
+                                            <span class="badge bg-secondary ms-2">{{ client.get_project_count }} projects</span>
+                                        </div>
+                                        <div class="btn-group">
+                                            <a href="{% url 'client_edit' client.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{% url 'client_delete' client.pk %}" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapse{{ client.id }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#clientsAccordion">
+                                <div class="accordion-body">
+                                    {% if client.projects.all %}
+                                        <div class="row">
+                                            {% for project in client.projects.all %}
+                                            <div class="col-md-6 col-lg-4 mb-3">
+                                                <div class="card h-100">
+                                                    <div class="card-body">
+                                                        <h6 class="card-title">{{ project.name }}</h6>
+                                                        {% if project.description %}
+                                                            <p class="card-text small text-muted">{{ project.description|truncatewords:10 }}</p>
+                                                        {% endif %}
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <small class="text-muted">Created by {{ project.created_by.username }}</small>
+                                                            <div class="btn-group">
+                                                                <a href="{% url 'project_detail' project.pk %}" class="btn btn-sm btn-outline-primary">
+                                                                    <i class="bi bi-eye"></i>
+                                                                </a>
+                                                                <a href="{% url 'project_edit' project.pk %}" class="btn btn-sm btn-outline-secondary">
+                                                                    <i class="bi bi-pencil"></i>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-center text-muted py-3">
+                                            <i class="bi bi-folder-x fs-1"></i>
+                                            <p>No projects for this client yet.</p>
+                                            <a href="{% url 'project_create' %}?client={{ client.id }}" class="btn btn-sm btn-primary">
+                                                <i class="bi bi-plus-circle"></i> Create Project
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-building-x fs-1"></i>
+                        <h4>No clients found</h4>
+                        <p>Get started by creating your first client.</p>
+                        <a href="{% url 'client_create' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Create Client
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

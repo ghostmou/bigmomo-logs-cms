@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Users - bigmomo logs cms{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-people"></i> Users
+            </h1>
+            <a href="{% url 'user_create' %}" class="btn btn-primary">
+                <i class="bi bi-person-plus"></i> New User
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <form method="get" class="d-flex">
+            <input type="text" name="search" class="form-control me-2" placeholder="Search users..." value="{{ request.GET.search }}">
+            <button type="submit" class="btn btn-outline-secondary">
+                <i class="bi bi-search"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if users %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Role</th>
+                                    <th>Status</th>
+                                    <th>Password Changed</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ user.username }}</strong>
+                                        {% if user.is_superuser %}
+                                            <span class="badge bg-danger ms-1">Superuser</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ user.get_full_name|default:"-" }}</td>
+                                    <td>{{ user.email|default:"-" }}</td>
+                                    <td>
+                                        <span class="badge {% if user.is_admin %}bg-primary{% else %}bg-secondary{% endif %}">
+                                            {{ user.get_role_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if user.is_active_user %}bg-success{% elif user.is_blocked %}bg-danger{% else %}bg-warning{% endif %}">
+                                            {{ user.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if user.is_password_changed %}
+                                            <i class="bi bi-check-circle text-success"></i>
+                                        {% else %}
+                                            <i class="bi bi-exclamation-triangle text-warning"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <a href="{% url 'user_edit' user.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{% url 'user_reset_password' user.pk %}" class="btn btn-sm btn-outline-warning">
+                                                <i class="bi bi-key"></i>
+                                            </a>
+                                            {% if user != request.user %}
+                                                <a href="{% url 'user_toggle_status' user.pk %}" class="btn btn-sm btn-outline-{% if user.is_blocked %}success{% else %}danger{% endif %}">
+                                                    <i class="bi bi-{% if user.is_blocked %}unlock{% else %}lock{% endif %}"></i>
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-people-x fs-1"></i>
+                        <h4>No users found</h4>
+                        <p>Get started by creating your first user.</p>
+                        <a href="{% url 'user_create' %}" class="btn btn-primary">
+                            <i class="bi bi-person-plus"></i> Create User
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

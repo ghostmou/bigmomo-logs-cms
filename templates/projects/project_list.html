@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Projects - bigmomo logs cms{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>
+                <i class="bi bi-folder"></i> Projects
+            </h1>
+            <a href="{% url 'project_create' %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> New Project
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-8">
+        <form method="get" class="row g-2">
+            <div class="col-md-4">
+                <input type="text" name="search" class="form-control" placeholder="Search projects..." value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-4">
+                <select name="client" class="form-select">
+                    <option value="">All Clients</option>
+                    {% for client in clients %}
+                        <option value="{{ client.id }}" {% if request.GET.client == client.id|stringformat:"s" %}selected{% endif %}>
+                            {{ client.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-search"></i> Search
+                </button>
+                <a href="{% url 'project_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> Clear
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                {% if projects %}
+                    <div class="row">
+                        {% for project in projects %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">{{ project.name }}</h6>
+                                </div>
+                                <div class="card-body">
+                                    <p class="text-muted small mb-2">
+                                        <i class="bi bi-building"></i> {{ project.client.name }}
+                                    </p>
+                                    {% if project.description %}
+                                        <p class="card-text small">{{ project.description|truncatewords:15 }}</p>
+                                    {% endif %}
+                                    
+                                    <div class="row text-center mb-3">
+                                        <div class="col-4">
+                                            <div class="{% if project.log_source %}text-success{% else %}text-muted{% endif %}">
+                                                <i class="bi bi-server"></i>
+                                                <small>Log Source</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="{% if project.file_filter %}text-success{% else %}text-muted{% endif %}">
+                                                <i class="bi bi-funnel"></i>
+                                                <small>Filter</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="{% if project.schedule %}text-success{% else %}text-muted{% endif %}">
+                                                <i class="bi bi-clock"></i>
+                                                <small>Schedule</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">By {{ project.created_by.username }}</small>
+                                        <div class="btn-group">
+                                            <a href="{% url 'project_detail' project.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{% url 'project_edit' project.pk %}" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{% url 'project_delete' project.pk %}" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-folder-x fs-1"></i>
+                        <h4>No projects found</h4>
+                        <p>Get started by creating your first project.</p>
+                        <a href="{% url 'project_create' %}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Create Project
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
