@@ -1,4 +1,4 @@
-# BigMomo Logs CMS
+# bigmomo logs cms
 
 A comprehensive Content Management System for managing server logs sources, destinations in BigQuery, and ETL pipelines to transfer logs from sources to BigQuery.
 
